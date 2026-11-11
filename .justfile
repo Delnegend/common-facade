@@ -1,0 +1,37 @@
+# Common Facade - dev workflows
+
+# Verify formatting, vet, and tests (CI gate: `Check (just check)`)
+check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [ -z "$(gofmt -l .)" ]
+    go vet ./...
+    go test ./...
+
+# Cross-compile the Linux release target (mirrors release.yml)
+build:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p dist/linux-amd64 && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o dist/linux-amd64/common-facade .
+
+# Language-agnostic version contract for Delnegend/actions/resolve-release.
+version action ver="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case "{{action}}" in
+      get)
+        cat VERSION
+        ;;
+      set|bump)
+        [ -n "{{ver}}" ] || { echo "usage: just version set X.Y.Z" >&2; exit 1; }
+        NEW="{{ver}}"
+        OLD="$(cat VERSION 2>/dev/null || true)"
+        if [ "$NEW" = "$OLD" ]; then
+          echo "error: set $NEW is a no-op (VERSION unchanged)" >&2
+          exit 1
+        fi
+        printf '%s\n' "$NEW" > VERSION
+        git diff -- VERSION
+        ;;
+      *) echo "usage: just version get|set X.Y.Z" >&2; exit 1 ;;
+    esac

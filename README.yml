@@ -1,0 +1,36 @@
+$schema: "./README.schema.json"
+
+name: Common Facade
+repo: Delnegend/common-facade
+tagline: "Opinionated CLI and GitHub Action that generates and validates README.md and LICENSE files across repositories."
+
+badges:
+  ci: true
+  release: true
+  license: true
+
+quick_start: |
+  ```bash
+  # 1. Generate README.md and LICENSE files from README.yml in current directory
+  common-facade
+
+  # 2. Check for drift in CI without modifying files
+  common-facade check
+  ```
+
+highlights:
+  - "**Single source of truth**: Author your metadata, badges, docs, and licenses once in README.yml."
+  - "**Strict standardization**: Required layout with Quick Start, Highlights, Documentation, and License sections."
+  - "**Zero drift in CI**: Opinionated composite GitHub Action verifies project facades with no parameters."
+  - "**Automatic license management**: Current year is always stamped automatically for MIT and Apache-2.0."
+
+documentation:
+  architecture: "Repository layout, AST-level YAML decoding, and drift detection pipeline."
+  development: "Building with Go, running test suites, and releasing through GitHub Actions."
+  deployment: "Installation via Homebrew tap, prebuilt release binaries, and GitHub Action integration."
+
+license:
+  type:
+    - MIT
+    - APACHE-2.0
+  holder: "Delnegend"

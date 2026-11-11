@@ -1,0 +1,127 @@
+name: Release / Build Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Empty = ship a new version. SHA = test-build it (no publish). Tag = rebuild it."
+        required: false
+        type: string
+      dry-run:
+        description: "Preview only: print each action (gate, bump, tag, build, publish) without doing any of it."
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 0 * * 0' # Weekly: Sunday 00:00 UTC
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    name: Gate (all of CI)
+    uses: ./.github/workflows/ci.yml
+
+  prepare:
+    name: Prepare (bump, tag, push)
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      ref: ${{ steps.resolve.outputs.ref }}
+      version: ${{ steps.resolve.outputs.version }}
+      publish: ${{ steps.resolve.outputs.publish }}
+      skip: ${{ steps.resolve.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          token: ${{ github.token }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Calculate Next SemVer
+        id: semver
+        uses: ietf-tools/semver-action@c90370b2958652d71c06a3484129a4d423a6d8a8 # v1
+        with:
+          token: ${{ github.token }}
+          fallbackTag: v0.0.0
+          noNewCommitBehavior: silent
+          noVersionBumpBehavior: patch
+
+      - name: Bump, tag, and push
+        id: resolve
+        uses: Delnegend/actions/resolve-release@cc01ad7470776ce23b38f14823a86d560e2d592e # v1
+        with:
+          ref: ${{ inputs.ref }}
+          dry-run: ${{ inputs.dry-run }}
+          gate-sha: ${{ github.sha }}
+          semver-bump: ${{ steps.semver.outputs.bump }}
+          semver-current: ${{ steps.semver.outputs.current }}
+          semver-next: ${{ steps.semver.outputs.next }}
+          semver-next-strict: ${{ steps.semver.outputs.nextStrict }}
+
+  build:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    needs: prepare
+    if: needs.prepare.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build binary
+        shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          set -euo pipefail
+          ext=""
+          if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
+          GOOS="$GOOS" GOARCH="$GOARCH" CGO_ENABLED=0 go build -o "common-facade$ext" .
+
+      - name: Package artifact
+        uses: Delnegend/actions/package-artifact@cc01ad7470776ce23b38f14823a86d560e2d592e # v1
+        with:
+          name: common-facade
+          version: ${{ needs.prepare.outputs.version }}
+          target: ${{ matrix.goos }}-${{ matrix.goarch }}
+          source: common-facade
+          extra: LICENSE-MIT LICENSE-APACHE
+
+  publish:
+    name: Publish Consolidated Release
+    needs: [prepare, build]
+    if: needs.prepare.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        uses: Delnegend/actions/publish-release@cc01ad7470776ce23b38f14823a86d560e2d592e # v1
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+          publish: ${{ needs.prepare.outputs.publish }}
