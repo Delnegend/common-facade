@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Delnegend/actions/main/scripts/README.schema.json",
+  "$id": "https://raw.githubusercontent.com/Delnegend/common-facade/main/README.schema.json",
   "title": "Delnegend README.yml Schema",
   "description": "Standardized schema for auto-generating README.md and LICENSE files across Delnegend projects.",
   "type": "object",
