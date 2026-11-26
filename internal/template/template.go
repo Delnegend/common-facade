@@ -244,26 +244,26 @@ func BuildReadme(c *config.Config) string {
 
 	var badges []string
 	if c.Badges.CI.Enabled {
-		badges = append(badges, fmt.Sprintf("[![CI](https://img.shields.io/github/actions/workflow/status/%s/%s?branch=%s&style=flat-square)](https://github.com/%s/actions)",
-			c.Repo, c.Badges.CI.Workflow, c.Badges.CI.Branch, c.Repo))
+		badges = append(badges, fmt.Sprintf("[![CI](https://badgers.space/github/checks/%s/%s?corner_radius=0&label=build)](https://github.com/%s/actions)",
+			c.Repo, c.Badges.CI.Branch, c.Repo))
 	}
 	if c.Badges.Release {
-		badges = append(badges, fmt.Sprintf("[![Release](https://img.shields.io/github/v/release/%s?style=flat-square)](https://github.com/%s/releases)",
+		badges = append(badges, fmt.Sprintf("[![Release](https://badgers.space/github/release/%s?corner_radius=0&color=ea7233)](https://github.com/%s/releases)",
 			c.Repo, c.Repo))
 	}
 	if c.Badges.License && !c.License.Unlicensed {
 		hasMIT := slices.Contains(c.License.Types, "MIT")
 		hasApache := slices.Contains(c.License.Types, "APACHE-2.0")
 		if hasMIT && hasApache {
-			badges = append(badges, "[![License](https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-blue?style=flat-square)](LICENSE-MIT)")
+			badges = append(badges, "[![License](https://badgers.space/badge/license/MIT%20%7C%20Apache-2.0/007ec6?corner_radius=0)](LICENSE-MIT)")
 		} else if hasApache {
-			badges = append(badges, "[![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](LICENSE-APACHE)")
+			badges = append(badges, "[![License](https://badgers.space/badge/license/Apache-2.0/007ec6?corner_radius=0)](LICENSE-APACHE)")
 		} else if hasMIT {
 			filename := c.License.Filename
 			if filename == "" {
 				filename = "LICENSE-MIT"
 			}
-			badges = append(badges, fmt.Sprintf("[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](%s)", filename))
+			badges = append(badges, fmt.Sprintf("[![License](https://badgers.space/badge/license/MIT/007ec6?corner_radius=0)](%s)", filename))
 		}
 	}
 	for _, cb := range c.Badges.Custom {

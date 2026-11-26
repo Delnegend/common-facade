@@ -12,7 +12,7 @@
    - `highlights`
    - `documentation` (`architecture`, `development`, `deployment`)
    - `license` (`type: false` or `["MIT", "APACHE-2.0"]`)
-3. **Template Rendering**: Builds Markdown with centered headers, shields.io badges, and standardized documentation links.
+3. **Template Rendering**: Builds Markdown with centered headers, badgers.space badges, and standardized documentation links.
 4. **License Generation**: Uses full text templates for MIT and Apache 2.0 licenses, stamping the current UTC year automatically.
 5. **Drift Verification (`check`)**: Compares memory-rendered buffers against on-disk files. Exits with code 1 if files are missing or modified.
 
