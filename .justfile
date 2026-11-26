@@ -1,11 +1,12 @@
 # Common Facade - dev workflows
 
-# Verify formatting, vet, and tests (CI gate: `Check (just check)`)
+# Verify formatting, vet, modernization, and tests (CI gate: `Check (just check)`)
 check:
     #!/usr/bin/env bash
     set -euo pipefail
     [ -z "$(gofmt -l .)" ]
     go vet ./...
+    go fix -diff ./...
     go test ./...
 
 # Cross-compile the Linux release target (mirrors release.yml)

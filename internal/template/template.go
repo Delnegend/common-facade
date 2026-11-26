@@ -2,6 +2,7 @@ package template
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Delnegend/common-facade/internal/config"
@@ -251,8 +252,8 @@ func BuildReadme(c *config.Config) string {
 			c.Repo, c.Repo))
 	}
 	if c.Badges.License && !c.License.Unlicensed {
-		hasMIT := contains(c.License.Types, "MIT")
-		hasApache := contains(c.License.Types, "APACHE-2.0")
+		hasMIT := slices.Contains(c.License.Types, "MIT")
+		hasApache := slices.Contains(c.License.Types, "APACHE-2.0")
 		if hasMIT && hasApache {
 			badges = append(badges, "[![License](https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-blue?style=flat-square)](LICENSE-MIT)")
 		} else if hasApache {
@@ -329,8 +330,8 @@ func BuildReadme(c *config.Config) string {
 		}
 		out.WriteString(licText)
 	} else {
-		hasMIT := contains(c.License.Types, "MIT")
-		hasApache := contains(c.License.Types, "APACHE-2.0")
+		hasMIT := slices.Contains(c.License.Types, "MIT")
+		hasApache := slices.Contains(c.License.Types, "APACHE-2.0")
 		var licText string
 		if hasMIT && hasApache {
 			licText = "Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option."
@@ -397,13 +398,4 @@ func formatHolder(h any, year int) string {
 	default:
 		return fmt.Sprintf("%d Delnegend", year)
 	}
-}
-
-func contains(slice []string, val string) bool {
-	for _, item := range slice {
-		if item == val {
-			return true
-		}
-	}
-	return false
 }
