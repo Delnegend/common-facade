@@ -6,18 +6,22 @@ runs:
   steps:
     - name: Validate README and LICENSE against README.yml
       shell: bash
+      env:
+        ACTION_REF: ${{ github.action_ref }}
       run: |
         set -euo pipefail
         if ! command -v common-facade >/dev/null 2>&1; then
           bin_dir="${RUNNER_TEMP:-/tmp}/common-facade-bin"
           mkdir -p "$bin_dir"
-          url=$(curl -fsSL https://api.github.com/repos/Delnegend/common-facade/releases/latest 2>/dev/null | grep -o 'https://[^"]*common-facade-[^"]*linux-amd64\.tar\.xz' | head -n1 || true)
-          if [ -n "$url" ]; then
-            curl -fsSL "$url" | tar -xJ -C "$bin_dir" --strip-components=1 2>/dev/null || true
+          if command -v go >/dev/null 2>&1; then
+            GOBIN="$bin_dir" go install github.com/Delnegend/common-facade@"$ACTION_REF"
             export PATH="$bin_dir:$PATH"
-          elif command -v go >/dev/null 2>&1; then
-            GOBIN="$bin_dir" go install github.com/Delnegend/common-facade@latest 2>/dev/null || true
-            export PATH="$bin_dir:$PATH"
+          else
+            url=$(curl -fsSL https://api.github.com/repos/Delnegend/common-facade/releases/latest 2>/dev/null | grep -o 'https://[^"]*common-facade-[^"]*linux-amd64\.tar\.xz' | head -n1 || true)
+            if [ -n "$url" ]; then
+              curl -fsSL "$url" | tar -xJ -C "$bin_dir" --strip-components=1 2>/dev/null || true
+              export PATH="$bin_dir:$PATH"
+            fi
           fi
         fi
 
